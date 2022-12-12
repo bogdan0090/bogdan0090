@@ -1,0 +1,438 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <math.h>
+#include <locale.h>
+#include <stdlib.h>
+#include <malloc.h>
+#include <time.h>
+#include <random>
+#include <windows.h>
+
+int n;
+int* mas;
+int* mas1;
+int* count_comp;
+int* count_swap;
+
+
+void swap(int* a, int* b)
+{
+	int c = *a;
+	*a = *b;
+	*b = c;
+}
+void print(int* mas, int n)
+{
+	int i = 0;
+	for (i = 0; i < n; i++) printf("%i ", mas[i]);
+	printf("\n");
+}
+int lin_poisk(int* mas, int n, int isk)
+{
+	int fl = 1;
+	for (int i = 0; i < n; i++)
+	{
+		if (mas[i] == isk)
+		{
+			fl = 0;
+			return i;
+			break;
+		}
+	}
+	if (fl == 1)
+		return -1;
+}
+int bin_poisk(int* mas, int n, int isk, int* p)
+{
+	int l = 0, r = n - 1, i = 0, arr = 0, fl = 0, count = 0, c = 0;
+	while (l <= r)
+	{
+		c = (l + r) / 2;
+		if (mas[c] == isk)
+		{
+			fl = 1;
+			arr = c;
+			break;
+		}
+		if (mas[c] < isk)
+			l = c + 1;
+		else
+			r = c - 1;
+
+	}
+	if (fl == 1)
+	{
+		return arr;
+	}
+	else
+	{
+		return -1;
+	}
+	*p = count;
+}
+void vstav(int* mas, int n, int* p)
+{
+	int ind, tmp, count = 0;
+	for (int i = 1; i < n; i++) {
+		ind = i;
+		for (int j = 0; j < i; j++) {
+			if (mas[i] < mas[j]) {
+				ind = j;
+				break;
+			}
+		}
+		tmp = mas[i];
+		for (int j = i - 1; j > ind - 1; j--) {
+			mas[j + 1] = mas[j];
+			count++;
+		}
+		mas[ind] = tmp;
+	}
+	*p = count;
+}
+void vibor(int* mas, int n, int* p)
+{
+	int i = 0, j = 0, count = 0, index = 0;
+	for (i = 0; i < n; i++)
+	{
+		int min = mas[i];
+		index = i;
+		for (j = i; j < n; j++)
+		{
+			if (mas[j] < min) { min = mas[j]; index = j; }
+		}
+		swap(&mas[i], &mas[index]);
+		count += 1;
+
+	}
+	*p = count;
+}
+void bubble(int* mas, int n, int* p)
+{
+	int i = 0, j = 0, k = 0, f = 0, count = 0;
+	for (i = 0; i < n; i++) {
+		for (j = 1; j < n - i; j++)
+			if (mas[j - 1] > mas[j]) { swap(&mas[j - 1], &mas[j]); k++; f = 1; count += 1; }
+		if (f == 0) break;
+	}
+	f = 0;
+	*p = count;
+}
+void bubbleshake(int* mas, int n, int* p)
+{
+	int i = 0, j = 0, k = 0, f = 0, h, count = 0;
+	for (i = 0; i < n; i++) {
+		for (j = 1; j < n - i; j++)
+		{
+			if (mas[j - 1] > mas[j]) { swap(&mas[j - 1], &mas[j]); k++; f = 1; count += 1; }
+		}
+		for (h = n - i - 1; h > 0; h--)
+		{
+			if (mas[h] < mas[h - 1]) { swap(&mas[h - 1], &mas[h]); k++; f = 1; count += 1; }
+		}
+		if (f == 0) break;
+	}
+	f = 0;
+	*p = count;
+}
+void sort_count(int* mas, int n)
+{
+	int* p;
+	int k = 0;
+	p = (int*)malloc(101 * sizeof(int));
+	for (int i = 0; i < 101; i++)p[i] = 0;
+	for (int i = 0; i < n; i++)p[mas[i]]++;
+	for (int i = 0; i < 101; i++)
+	{
+		for (int j = 0; j < p[i]; j++)
+		{
+			mas[k] = i;
+			k++;
+		}
+	}
+	free(p);
+}
+void merge(int* mas, int left, int mid, int right)
+{
+	int i = left, j = mid + 1, k = left;
+	int* res;
+	res = (int*)malloc((right - left) * sizeof(int));
+	while ((i < mid) && (j <= right))
+	{
+		if (mas[i] < mas[j]) { res[k] = mas[i], i++; }
+		else { res[k] = mas[j]; j++; }
+		k++;
+	}
+	if (i > mid)
+	{
+		while (j <= right)
+		{
+			res[k] = mas[j];
+			k++;
+			j++;
+		}
+	}
+	else
+	{
+		while (i <= mid)
+		{
+			res[k] = mas[i];
+			k++;
+			i++;
+		}
+	}
+	for (int i = left; i < right; i++)mas[i] = res[i];
+	free(res);
+}
+void merge_sort(int* mas, int left, int right)
+{
+	if (left >= right)
+		return;
+	int mid = (left + right) / 2;
+	merge_sort(mas, left, mid);
+	merge_sort(mas, mid + 1, right);
+	merge(mas, left, mid, right);
+}
+void quicksort(int* mas, int first, int last)
+{
+	int mid, tmp;
+	int f = first, l = last;
+	mid = mas[(f + l) / 2];
+	while (f < l)
+	{
+		while (mas[f] < mid)f++;
+		while (mas[l] > mid)l--;
+		if (f <= l)
+		{
+			tmp = mas[f];
+			mas[f] = mas[l];
+			mas[l] = tmp;
+			f++;
+			l--;
+		}
+	}
+	if (first < l) quicksort(mas, first, l);
+	if (f < last) quicksort(mas, f, last);
+}
+void pristv(int* mas, int* mas1, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		mas1[i] = mas[i];
+	}
+}
+
+void update_size()
+{
+		do {
+
+			printf("Введите размер массива: ");
+
+			scanf_s("%d", &n);
+
+		} while (n <= 0);
+		mas = (int*)malloc(sizeof(int) * n);
+		mas1 = (int*)malloc(sizeof(int) * n);
+}
+
+
+int main()
+{
+	setlocale(LC_ALL, "rus");
+	srand((unsigned int)time(NULL));//функция пихает в ранд значение времени => выдаёт каждый раз новые значения
+	clock_t begin, end;
+	int i, s, q, qq = 0, gg = 0;
+	printf("Введите размер массива(все массивы длинны >10 будут заполнятся рандомными значениями):");
+	scanf("%i", &n);
+	if (n <= 10)
+	{
+		printf("Введите массив длинны %i\n", n);
+		for (i = 0; i < n; i++) scanf("%i", &mas[i]);
+	}
+	else
+	{
+		for (int i = 0; i < n; i++)mas[i] = rand();
+		if (n < 100)
+		{
+			printf("Ваш сгенерированный массив:\n");
+			for (i = 0; i < n; i++) printf("%i ", mas[i]);
+		}
+		printf("\n");
+	}
+	system("pause");
+	system("cls");
+
+	while (1)
+	{
+
+		printf("Выберите действия:\n1)Печать массива\n2)Линейный поиск\n3)Бинарный поиск(Запускать после сортировки!!!)\n4)генетация массива\n5)Сортировка подсчётом(только для маленьких чисел)\n6)Сортировка пузырьком \n7)Сортировка шейкером \n8)Сортировка Выбором \n9)Сортировка вставками\n10)Сортировка слиянием\n11)быстрая сортировка\n12)выход\n");
+		int q1;
+		scanf("%i", &q1);
+		switch (q1)
+		{
+		case 1:
+			system("cls");
+			begin = clock();
+			print(mas, n);
+			end = clock();
+			printf("Время работы функции = %f\n", (end - begin) / (float)CLOCKS_PER_SEC);
+			break;
+		case 2:
+			system("cls");
+			print(mas1, n);
+			printf("Введите значение которое хотите найти:\n");
+			scanf("%i", &qq);
+			begin = clock();
+			gg = lin_poisk(mas1, n, qq);
+			end = clock();
+			if (gg != -1)
+				printf("Позиция элемента в массиве - %i\n", gg);
+			else
+				printf("Такого элемента в массиве нет\n");
+			printf("Время работы функции = %f\n", (end - begin) / (float)CLOCKS_PER_SEC);
+			system("pause");
+			system("cls");
+			break;
+		case 3:
+			system("cls");
+			print(mas1, n);
+			printf("Введите значение которое хотите найти:\n");
+			scanf("%i", &qq);
+			begin = clock();
+			gg = bin_poisk(mas1, n, qq, count_comp);
+			end = clock();
+			if (gg != -1)
+				printf("Позиция элемента в массиве - %i\n", gg);
+			else
+				printf("Такого элемента в массиве нет\n");
+			printf("count = %i\n", count_comp);
+			count_comp = 0;
+			printf("Время работы функции = %f\n", (end - begin) / (float)CLOCKS_PER_SEC);
+			system("pause");
+			system("cls");
+			break;
+		case 4:
+			system("cls");
+			printf("Введите размер массива(все массивы длинны >10 будут заполнятся рандомными значениями):");
+			scanf("%i", &n);
+			mas = (int*)malloc(n * sizeof(int));
+			if (n <= 10)
+			{
+				printf("Введите массив длинны %i\n", n);
+				for (i = 0; i < n; i++) scanf("%i", &mas[i]);
+			}
+			else
+			{
+				begin = clock();
+				for (int i = 0; i < n; i++)mas[i] = rand();
+				end = clock();
+				if (n < 100)
+				{
+					printf("Ваш сгенерированный массив:\n");
+					for (i = 0; i < n; i++) printf("%i", &mas[i]);
+					printf("\n");
+				}
+				printf("Время работы функции = %f\n", (end - begin) / (float)CLOCKS_PER_SEC);
+			}
+			system("pause");
+			system("cls");
+			break;
+		case 5:
+			system("cls");
+			pristv(mas, mas1, n);
+			begin = clock();
+			sort_count(mas1, n);
+			end = clock();
+			print(mas1, n);
+			printf("Время работы функции = %f\n", (end - begin) / (float)CLOCKS_PER_SEC);
+			system("pause");
+			system("cls");
+			break;
+		case 6:
+			system("cls");
+			pristv(mas, mas1, n);
+			begin = clock();
+			bubble(mas1, n, count_comp);
+			end = clock();
+			if (n < 100)
+				print(mas1, n);
+			printf("count = %i\n", p);
+			printf("Время работы функции = %f\n", (end - begin) / (float)CLOCKS_PER_SEC);
+			system("pause");
+			system("cls");
+			break;
+		case 7:
+			system("cls");
+			pristv(mas, mas1, n);
+			begin = clock();
+			bubbleshake(mas1, n, count_comp);
+			end = clock();
+			if (n < 100)
+				print(mas1, n);
+			printf("count = %i\n", p);
+			printf("Время работы функции = %f\n", (end - begin) / (float)CLOCKS_PER_SEC);
+			system("pause");
+			system("cls");
+			break;
+		case 8:
+			system("cls");
+			pristv(mas, mas1, n);
+			begin = clock();
+			vibor(mas1, n, count_comp);
+			end = clock();
+			if (n < 100)
+				print(mas1, n);
+			printf("count = %i\n", p);
+			printf("Время работы функции = %f\n", (end - begin) / (float)CLOCKS_PER_SEC);
+			system("pause");
+			system("cls");
+			break;
+		case 9:
+			system("cls");
+			pristv(mas, mas1, n);
+			begin = clock();
+			vstav(mas1, n, count_comp);
+			end = clock();
+			if (n < 100)
+				print(mas1, n);
+			printf("count = %i\n", p);
+			printf("Время работы функции = %f\n", (end - begin) / (float)CLOCKS_PER_SEC);
+			system("pause");
+			system("cls");
+			break;
+		case 10:
+			system("cls");
+			pristv(mas, mas1, n);
+			begin = clock();
+			merge_sort(mas1, 0, n);
+			end = clock();
+			print(mas1, n);
+			printf("Время работы функции = %f\n", (end - begin) / (float)CLOCKS_PER_SEC);
+			system("pause");
+			system("cls");
+			break;
+		case 11:
+			system("cls");
+			pristv(mas, mas1, n);
+			begin = clock();
+			quicksort(mas1, 0, n - 1);
+			end = clock();
+			print(mas1, n);
+			printf("Время работы функции = %f\n", (end - begin) / (float)CLOCKS_PER_SEC);
+			system("pause");
+			system("cls");
+			break;
+		case 12:
+			system("cls");
+			printf("Спасибо за работу)\n");
+			return 0;
+			break;
+			free(mas);
+		default:
+			system("cls");
+			printf("**ошибка ввода!**\n***Введите коректное значение***\n");
+			break;
+		}
+
+	}
+}
